@@ -1,7 +1,11 @@
 import streamlit as st
 import plotly.express as px
 from mni.core import UserState, estimate_struggle, choose_minimum_intervention
-from mni.simulate import generate_population, evaluate_strategies, summarize, simulate_episode, threshold_sweep, robustness_suite, heterogeneity_suite, ablation_suite
+from mni.simulate import generate_population, evaluate_strategies, summarize
+from mni.experiments_episode import simulate_episode
+from mni.thresholds import threshold_sweep
+from mni.robustness import robustness_suite, heterogeneity_suite
+from mni.ablation import ablation_suite
 
 st.set_page_config(page_title="MNI — Minimum Necessary Intervention",page_icon="🧭",layout="wide")
 st.markdown("""
