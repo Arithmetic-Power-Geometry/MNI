@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-and-benchmark:
+  test-and-reproduce:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,12 +15,20 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run tests
+      - name: Run complete test suite
         run: pytest -q
-      - name: Generate benchmark artifacts
-        run: python scripts/run_benchmark.py
-      - name: Upload benchmark artifact
+      - name: Reproduce all scientific artifacts
+        run: python scripts/run_all.py
+      - name: Verify generated artifacts
+        run: |
+          test -f results/summary.csv
+          test -f results/threshold_sweep.csv
+          test -f results/robustness_suite.csv
+          test -f results/heterogeneity_suite.csv
+          test -f results/ablation_suite.csv
+          test -f results/episode_trace.csv
+      - name: Upload complete result artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mni-benchmark-results
+          name: mni-complete-results
           path: results/
