@@ -2,11 +2,14 @@ from pathlib import Path
 import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
+
 from mni.simulate import generate_population,evaluate_strategies,summarize
 from mni.experiments_episode import simulate_episode
 from mni.thresholds import threshold_sweep
 from mni.robustness import robustness_suite,heterogeneity_suite
 from mni.ablation import ablation_suite
+from mni.evidence_v1 import multiseed_summary,pareto_frontier,longitudinal_learning,paper_gate_checks
+
 OUT=ROOT/'results'; OUT.mkdir(exist_ok=True)
 pop=generate_population(1200,42,1.0)
 bench=evaluate_strategies(pop,.70,123)
@@ -16,8 +19,36 @@ rob=robustness_suite(pop)
 het=heterogeneity_suite()
 abl=ablation_suite(pop)
 episode=simulate_episode()
-artifacts={'synthetic_population':pop,'benchmark_results':bench,'summary':summary,'threshold_sweep':sweep,'robustness_suite':rob,'heterogeneity_suite':het,'ablation_suite':abl,'episode_trace':episode}
-for name,df in artifacts.items(): df.to_csv(OUT/f'{name}.csv',index=False)
+multiseed,multiseed_raw=multiseed_summary(seeds=range(20),n_users=1200,threshold=.70)
+pareto=pareto_frontier(pop)
+longitudinal=longitudinal_learning(n_users=800,sessions=12,seed=77,threshold=.70)
+gates=paper_gate_checks(summary,rob,pareto,multiseed)
+
+artifacts={
+    'synthetic_population':pop,
+    'benchmark_results':bench,
+    'summary':summary,
+    'threshold_sweep':sweep,
+    'robustness_suite':rob,
+    'heterogeneity_suite':het,
+    'ablation_suite':abl,
+    'episode_trace':episode,
+    'multiseed_summary':multiseed,
+    'multiseed_raw':multiseed_raw,
+    'pareto_frontier':pareto,
+    'longitudinal_learning':longitudinal,
+    'paper_gate_checks':gates,
+}
+for name,df in artifacts.items():
+    df.to_csv(OUT/f'{name}.csv',index=False)
+
+print('=== BASELINE SUMMARY ===')
 print(summary.to_string(index=False))
+print('\n=== ROBUSTNESS ===')
 print(rob.to_string(index=False))
+print('\n=== ABLATIONS ===')
 print(abl.to_string(index=False))
+print('\n=== MULTI-SEED SUMMARY ===')
+print(multiseed.to_string(index=False))
+print('\n=== PAPER GATES ===')
+print(gates.to_string(index=False))
